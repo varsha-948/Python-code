@@ -1,0 +1,61 @@
+import random
+from datetime import datetime
+
+class User:
+    def __init__(self, user_id):
+        self.user_id = user_id
+
+class Variant:
+    def __init__(self, variant_id, conversion_rate):
+        self.variant_id = variant_id
+        self.conversion_rate = conversion_rate
+        self.conversions = 0
+        self.total_users = 0
+
+    def record_user(self):
+        self.total_users += 1
+        if random.random() < self.conversion_rate:
+            self.conversions += 1
+
+    def conversion_rate_percentage(self):
+        if self.total_users == 0:
+            return 0
+        return (self.conversions / self.total_users) * 100
+
+class Experiment:
+    def __init__(self, experiment_id, variants):
+        self.experiment_id = experiment_id
+        self.variants = variants
+        self.start_time = datetime.now()
+
+    def assign_user_to_variant(self, user):
+        variant = random.choice(self.variants)
+        variant.record_user()
+        return variant
+
+    def get_results(self):
+        results = {}
+        for variant in self.variants:
+            results[variant.variant_id] = {
+                'conversions': variant.conversions,
+                'total_users': variant.total_users,
+                'conversion_rate': variant.conversion_rate_percentage()
+            }
+        return results
+
+if __name__ == "__main__":
+    variant_a = Variant(variant_id="A", conversion_rate=0.1)  
+    variant_b = Variant(variant_id="B", conversion_rate=0.2)
+
+    experiment = Experiment(experiment_id="Experiment_1", variants=[variant_a, variant_b])
+
+    for user_id in range(1, 101):  
+        user = User(user_id)
+        assigned_variant = experiment.assign_user_to_variant(user)
+
+    results = experiment.get_results()
+    for variant_id, metrics in results.items():
+        print(f"Variant {variant_id}:")
+        print(f"  Conversions: {metrics['conversions']}")
+        print(f"  Total Users: {metrics['total_users']}")
+        print(f"  Conversion Rate: {metrics['conversion_rate']:.2f}%")
